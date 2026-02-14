@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simplificador de Fracciones</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0e0e12;
+      --panel:   #16161e;
+      --border:  #2a2a38;
+      --text:    #e8e6f0;
+      --muted:   #6e6c82;
+      --yellow:  #f5d547;
+      --teal:    #3ef0c8;
+      --pink:    #f04e7a;
+      --blue:    #4e8ef0;
+    }
+
+    body {
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      color: var(--text);
+      padding: 2.5rem 1rem;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(circle, #ffffff08 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.12;
+      pointer-events: none;
+      animation: drift 12s ease-in-out infinite alternate;
+    }
+    .blob-1 { width: 400px; height: 400px; background: var(--pink); top: -100px; right: -100px; animation-delay: 0s; }
+    .blob-2 { width: 350px; height: 350px; background: var(--blue); bottom: -80px; left: -80px; animation-delay: -5s; }
+    .blob-3 { width: 280px; height: 280px; background: var(--yellow); top: 50%; left: 20%; animation-delay: -8s; }
+
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(30px, 20px) scale(1.08); }
+    }
+
+    /* Back link */
+    .back-link {
+      position: fixed;
+      top: 1.2rem;
+      left: 1.5rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0.35rem 0.75rem;
+      transition: color 0.2s, border-color 0.2s;
+      z-index: 10;
+    }
+    .back-link:hover { color: var(--pink); border-color: var(--pink); }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      animation: slideDown 0.6s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    .tag {
+      display: inline-block;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--pink);
+      border: 1px solid var(--pink);
+      padding: 0.25rem 0.75rem;
+      border-radius: 2px;
+      margin-bottom: 0.9rem;
+    }
+
+    h1 {
+      font-size: clamp(1.9rem, 5vw, 3rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+
+    h1 em {
+      font-style: normal;
+      color: var(--pink);
+    }
+
+    header p {
+      margin-top: 0.6rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 520px;
+      animation: slideUp 0.6s cubic-bezier(0.22,1,0.36,1) 0.1s both;
+      position: relative;
+    }
+
+    .section-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.2rem;
+    }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+    }
+
+    .frac-input-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .frac-input-wrap input {
+      width: 100px;
+      height: 60px;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 5px;
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 1.6rem;
+      font-weight: 700;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -moz-appearance: textfield;
+    }
+    .frac-input-wrap input::-webkit-inner-spin-button,
+    .frac-input-wrap input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    .frac-input-wrap input:focus {
+      border-color: var(--pink);
+      box-shadow: 0 0 0 3px rgba(240,78,122,0.12);
+    }
+
+    .frac-bar-input {
+      width: 100px;
+      height: 2.5px;
+      background: var(--text);
+      margin: 6px 0;
+    }
+
+    #btn-simplify {
+      margin-top: 1.8rem;
+      width: 100%;
+      padding: 0.85rem;
+      background: var(--pink);
+      color: #0e0e12;
+      border: none;
+      border-radius: 5px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 0 0 0 rgba(240,78,122,0.4);
+    }
+    #btn-simplify:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(240,78,122,0.3);
+    }
+    #btn-simplify:active { transform: translateY(0); box-shadow: none; }
+
+    #btn-reset {
+      margin-top: 0.7rem;
+      width: 100%;
+      padding: 0.6rem;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    #btn-reset:hover { color: var(--text); border-color: var(--muted); }
+
+    .error-msg {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--pink);
+      margin-top: 0.8rem;
+      min-height: 1.2em;
+      text-align: center;
+    }
+
+    /* Result */
+    .result-section {
+      margin-top: 2rem;
+      padding-top: 1.8rem;
+      border-top: 1px solid var(--border);
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+    .result-section.visible { opacity: 1; transform: translateY(0); }
+
+    .result-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.2rem;
+      text-align: center;
+    }
+
+    .equality-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.2rem;
+      flex-wrap: wrap;
+    }
+
+    .frac-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem 1.4rem;
+      min-width: 90px;
+    }
+
+    .frac-card.original  { border-color: var(--blue); }
+    .frac-card.simplified { border-color: var(--pink); }
+    .frac-card.integer-card { border-color: var(--yellow); }
+    .frac-card.already-card { border-color: var(--teal); }
+
+    .fc-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .frac-card.original .fc-label   { color: var(--blue); }
+    .frac-card.simplified .fc-label { color: var(--pink); }
+    .frac-card.integer-card .fc-label { color: var(--yellow); }
+    .frac-card.already-card .fc-label { color: var(--teal); }
+
+    .fc-num, .fc-den {
+      font-family: 'Space Mono', monospace;
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .frac-card.original .fc-num,
+    .frac-card.original .fc-den   { color: var(--blue); }
+    .frac-card.simplified .fc-num,
+    .frac-card.simplified .fc-den { color: var(--pink); }
+    .frac-card.already-card .fc-num,
+    .frac-card.already-card .fc-den { color: var(--teal); }
+
+    .fc-bar {
+      height: 2.5px;
+      width: 100%;
+      min-width: 40px;
+      margin: 5px 0;
+    }
+    .frac-card.original .fc-bar   { background: var(--blue); }
+    .frac-card.simplified .fc-bar { background: var(--pink); }
+    .frac-card.already-card .fc-bar { background: var(--teal); }
+
+    .fc-integer {
+      font-family: 'Space Mono', monospace;
+      font-size: 2.6rem;
+      font-weight: 700;
+      color: var(--yellow);
+    }
+
+    .eq-symbol {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.8rem;
+      color: var(--pink);
+      font-weight: 700;
+    }
+
+    .arrow-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+    }
+    .arrow-badge .ab-line {
+      width: 2px;
+      height: 18px;
+      background: var(--border);
+    }
+    .arrow-badge .ab-pill {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--pink);
+      border: 1px solid var(--pink);
+      border-radius: 20px;
+      padding: 0.15rem 0.5rem;
+      white-space: nowrap;
+      background: rgba(240,78,122,0.06);
+    }
+
+    .already-msg {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--teal);
+      text-align: center;
+      margin-top: 0.8rem;
+    }
+
+    /* Proof box */
+    .proof-box {
+      margin-top: 1.4rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 1rem 1.3rem;
+    }
+    .proof-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
+    }
+    .proof-box p {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--text);
+      line-height: 1.8;
+    }
+    .proof-box .ok  { color: var(--teal); }
+    .proof-box .val { color: var(--yellow); }
+    .proof-box .hl  { color: var(--pink); }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 1.8rem 1.3rem; }
+      .frac-input-wrap input { width: 80px; font-size: 1.3rem; height: 52px; }
+      .frac-bar-input { width: 80px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<a class="back-link" href="index.html">← Inicio</a>
+
+<header>
+  <div class="tag">Herramienta matemática</div>
+  <h1>Simplificador de <em>Fracciones</em></h1>
+  <p>Introduce una fracción y obtén su forma más simple usando el MCD</p>
+</header>
+
+<div class="card">
+  <div class="section-label">Fracción de entrada</div>
+
+  <div class="input-row">
+    <div class="frac-input-wrap">
+      <input type="number" id="numerator" placeholder="6" aria-label="Numerador" />
+      <div class="frac-bar-input"></div>
+      <input type="number" id="denominator" placeholder="9" aria-label="Denominador" />
+    </div>
+  </div>
+
+  <div class="error-msg" id="error-msg" aria-live="polite"></div>
+
+  <button id="btn-simplify">Simplificar</button>
+  <button id="btn-reset">Limpiar</button>
+
+  <div class="result-section" id="result-section" aria-live="polite">
+    <div class="result-label">Resultado</div>
+    <div class="equality-row" id="equality-row"></div>
+    <div id="already-msg"></div>
+    <div class="proof-box" id="proof-box"></div>
+  </div>
+</div>
+
+<script>
+  function gcd(a, b) {
+    a = Math.abs(a); b = Math.abs(b);
+    while (b) { [a, b] = [b, a % b]; }
+    return a;
+  }
+
+  document.getElementById('btn-simplify').addEventListener('click', simplify);
+  document.getElementById('btn-reset').addEventListener('click', reset);
+  [document.getElementById('numerator'), document.getElementById('denominator')]
+    .forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') simplify(); }));
+
+  function simplify() {
+    const numVal = document.getElementById('numerator').value.trim();
+    const denVal = document.getElementById('denominator').value.trim();
+    const errEl  = document.getElementById('error-msg');
+    const rs     = document.getElementById('result-section');
+    const eqRow  = document.getElementById('equality-row');
+    const alMsg  = document.getElementById('already-msg');
+    const proof  = document.getElementById('proof-box');
+
+    errEl.textContent = '';
+    rs.classList.remove('visible');
+
+    if (numVal === '' || denVal === '') { errEl.textContent = 'Introduce el numerador y el denominador.'; return; }
+    const num = parseInt(numVal, 10);
+    const den = parseInt(denVal, 10);
+    if (isNaN(num) || isNaN(den)) { errEl.textContent = 'Introduce números enteros válidos.'; return; }
+    if (den === 0) { errEl.textContent = 'El denominador no puede ser cero.'; return; }
+
+    const sign   = (num < 0) !== (den < 0) ? -1 : 1;
+    const absNum = Math.abs(num);
+    const absDen = Math.abs(den);
+    const g      = gcd(absNum, absDen);
+    const sNum   = sign * (absNum / g);
+    const sDen   = absDen / g;
+    const simple = g === 1;
+
+    alMsg.innerHTML = '';
+
+    if (sDen === 1) {
+      // Integer result
+      eqRow.innerHTML = `
+        <div class="frac-card original">
+          <span class="fc-label">Original</span>
+          <span class="fc-num">${num}</span>
+          <div class="fc-bar"></div>
+          <span class="fc-den">${den}</span>
+        </div>
+        <div class="arrow-badge">
+          <div class="ab-line"></div>
+          <div class="ab-pill">÷ ${g}</div>
+          <div class="ab-line"></div>
+        </div>
+        <span class="eq-symbol">=</span>
+        <div class="frac-card integer-card">
+          <span class="fc-label">Entero</span>
+          <span class="fc-integer">${sNum}</span>
+        </div>`;
+      proof.innerHTML = `
+        <div class="proof-title">Pasos del cálculo</div>
+        <p>MCD(<span class="val">${absNum}</span>, <span class="val">${absDen}</span>) = <span class="hl">${g}</span></p>
+        <p>${num} ÷ ${g} = <span class="val">${sNum}</span></p>
+        <p>${den} ÷ ${g} = <span class="val">${sDen}</span></p>
+        <p class="ok">✓ El resultado es el número entero ${sNum}</p>`;
+
+    } else if (simple) {
+      // Already simplified
+      eqRow.innerHTML = `
+        <div class="frac-card already-card">
+          <span class="fc-label">Mínima expresión</span>
+          <span class="fc-num">${num}</span>
+          <div class="fc-bar"></div>
+          <span class="fc-den">${den}</span>
+        </div>`;
+      alMsg.innerHTML = `<p class="already-msg">✓ Ya está en su mínima expresión</p>`;
+      proof.innerHTML = `
+        <div class="proof-title">Pasos del cálculo</div>
+        <p>MCD(<span class="val">${absNum}</span>, <span class="val">${absDen}</span>) = <span class="hl">1</span></p>
+        <p class="ok">✓ El MCD es 1 — no se puede simplificar más</p>`;
+
+    } else {
+      // Normal simplification
+      eqRow.innerHTML = `
+        <div class="frac-card original">
+          <span class="fc-label">Original</span>
+          <span class="fc-num">${num}</span>
+          <div class="fc-bar"></div>
+          <span class="fc-den">${den}</span>
+        </div>
+        <div class="arrow-badge">
+          <div class="ab-line"></div>
+          <div class="ab-pill">÷ ${g}</div>
+          <div class="ab-line"></div>
+        </div>
+        <span class="eq-symbol">=</span>
+        <div class="frac-card simplified">
+          <span class="fc-label">Simplificada</span>
+          <span class="fc-num">${sNum}</span>
+          <div class="fc-bar"></div>
+          <span class="fc-den">${sDen}</span>
+        </div>`;
+      proof.innerHTML = `
+        <div class="proof-title">Pasos del cálculo</div>
+        <p>MCD(<span class="val">${absNum}</span>, <span class="val">${absDen}</span>) = <span class="hl">${g}</span></p>
+        <p>${num} ÷ ${g} = <span class="val">${sNum}</span></p>
+        <p>${den} ÷ ${g} = <span class="val">${sDen}</span></p>
+        <p class="ok">✓ Fracción simplificada correctamente</p>`;
+    }
+
+    void rs.offsetWidth;
+    rs.classList.add('visible');
+  }
+
+  function reset() {
+    document.getElementById('numerator').value = '';
+    document.getElementById('denominator').value = '';
+    document.getElementById('error-msg').textContent = '';
+    document.getElementById('result-section').classList.remove('visible');
+    document.getElementById('equality-row').innerHTML = '';
+    document.getElementById('already-msg').innerHTML = '';
+    document.getElementById('proof-box').innerHTML = '';
+    document.getElementById('numerator').focus();
+  }
+</script>
+</body>
+</html>

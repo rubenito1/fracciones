@@ -3,20 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simplificador de Fracciones</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <title>Herramientas de Fracciones</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:       #f5f0e8;
-      --surface:  #fffdf8;
-      --ink:      #1a1611;
-      --ink-soft: #6b6355;
-      --accent:   #c84b31;
-      --accent2:  #2d6a4f;
-      --line:     #d4c9b5;
-      --shadow:   rgba(26,22,17,0.12);
+      --bg:     #0e0e12;
+      --panel:  #16161e;
+      --border: #2a2a38;
+      --text:   #e8e6f0;
+      --muted:  #6e6c82;
+      --yellow: #f5d547;
+      --teal:   #3ef0c8;
+      --pink:   #f04e7a;
+      --blue:   #4e8ef0;
     }
 
     body {
@@ -26,472 +27,315 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-family: 'DM Sans', sans-serif;
-      color: var(--ink);
-      padding: 2rem 1rem;
+      font-family: 'Syne', sans-serif;
+      color: var(--text);
+      padding: 3rem 1.5rem;
+      overflow-x: hidden;
     }
 
-    /* Background grid texture */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
-      background-image:
-        linear-gradient(var(--line) 1px, transparent 1px),
-        linear-gradient(90deg, var(--line) 1px, transparent 1px);
-      background-size: 40px 40px;
-      opacity: 0.35;
+      background-image: radial-gradient(circle, #ffffff08 1px, transparent 1px);
+      background-size: 28px 28px;
       pointer-events: none;
     }
 
+    /* Blobs */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.10;
+      pointer-events: none;
+      animation: drift 14s ease-in-out infinite alternate;
+    }
+    .blob-1 { width: 500px; height: 500px; background: var(--teal);  top: -150px; left: -150px; animation-delay: 0s; }
+    .blob-2 { width: 400px; height: 400px; background: var(--pink);  bottom: -120px; right: -100px; animation-delay: -6s; }
+    .blob-3 { width: 300px; height: 300px; background: var(--blue);  top: 40%; left: 55%; animation-delay: -10s; }
+
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(35px, 25px) scale(1.1); }
+    }
+
+    /* Header */
     header {
       text-align: center;
-      margin-bottom: 2.5rem;
-      animation: fadeDown 0.7s ease both;
+      margin-bottom: 3.5rem;
+      animation: slideDown 0.7s cubic-bezier(0.22,1,0.36,1) both;
     }
 
-    header h1 {
-      font-family: 'DM Serif Display', serif;
-      font-size: clamp(2rem, 5vw, 3.2rem);
-      letter-spacing: -0.02em;
-      color: var(--ink);
-      line-height: 1.1;
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--yellow);
+      margin-bottom: 1rem;
     }
 
-    header h1 span {
-      color: var(--accent);
-      font-style: italic;
+    .eyebrow::before,
+    .eyebrow::after {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 1px;
+      background: var(--yellow);
+      opacity: 0.6;
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 6vw, 4rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+
+    h1 .line2 {
+      display: block;
+      color: var(--yellow);
     }
 
     header p {
-      margin-top: 0.5rem;
-      font-size: 0.95rem;
-      color: var(--ink-soft);
-      font-weight: 300;
-      letter-spacing: 0.03em;
-    }
-
-    .card {
-      background: var(--surface);
-      border: 1.5px solid var(--line);
-      border-radius: 4px;
-      padding: 2.5rem 3rem;
-      width: 100%;
-      max-width: 520px;
-      box-shadow: 6px 6px 0 var(--line);
-      animation: fadeUp 0.7s ease 0.15s both;
-      position: relative;
-    }
-
-    /* Decorative corner marks */
-    .card::before, .card::after {
-      content: '+';
-      position: absolute;
-      font-family: 'DM Mono', monospace;
-      font-size: 1rem;
-      color: var(--line);
-    }
-    .card::before { top: -0.7rem; left: -0.7rem; }
-    .card::after  { bottom: -0.7rem; right: -0.7rem; }
-
-    .input-section {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 1rem;
-    }
-
-    .fraction-input {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0;
-    }
-
-    .fraction-input input {
-      width: 90px;
-      background: var(--bg);
-      border: 1.5px solid var(--line);
-      border-radius: 3px;
-      padding: 0.6rem;
-      font-family: 'DM Mono', monospace;
-      font-size: 1.4rem;
-      font-weight: 500;
-      text-align: center;
-      color: var(--ink);
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      -moz-appearance: textfield;
-    }
-
-    .fraction-input input::-webkit-inner-spin-button,
-    .fraction-input input::-webkit-outer-spin-button { -webkit-appearance: none; }
-
-    .fraction-input input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(200,75,49,0.12);
-    }
-
-    .fraction-line {
-      width: 90px;
-      height: 2px;
-      background: var(--ink);
-      margin: 4px 0;
-    }
-
-    .operator {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.6rem;
-      color: var(--ink-soft);
-      user-select: none;
-      margin-bottom: 0.1rem;
-    }
-
-    label.fraction-label {
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--ink-soft);
-      margin-top: 0.4rem;
-      font-weight: 500;
-    }
-
-    .btn-group {
-      display: flex;
-      gap: 0.75rem;
-      margin-top: 2rem;
-      justify-content: center;
-    }
-
-    button {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.88rem;
-      font-weight: 500;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      cursor: pointer;
-      border-radius: 3px;
-      border: 1.5px solid transparent;
-      padding: 0.65rem 1.5rem;
-      transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
-    }
-
-    button:active { transform: translate(2px, 2px); box-shadow: none !important; }
-
-    #btn-simplify {
-      background: var(--ink);
-      color: var(--bg);
-      border-color: var(--ink);
-      box-shadow: 3px 3px 0 var(--accent);
-    }
-    #btn-simplify:hover { box-shadow: 5px 5px 0 var(--accent); }
-
-    #btn-reset {
-      background: transparent;
-      color: var(--ink-soft);
-      border-color: var(--line);
-    }
-    #btn-reset:hover { border-color: var(--ink-soft); color: var(--ink); }
-
-    /* Result area */
-    .result-area {
-      margin-top: 2rem;
-      padding-top: 1.5rem;
-      border-top: 1.5px dashed var(--line);
-      opacity: 0;
-      transform: translateY(8px);
-      transition: opacity 0.4s ease, transform 0.4s ease;
-      min-height: 0;
-    }
-
-    .result-area.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .result-label {
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--ink-soft);
-      font-weight: 500;
-      margin-bottom: 1rem;
-      text-align: center;
-    }
-
-    .result-main {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 1.25rem;
-    }
-
-    .fraction-display {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .frac-num, .frac-den {
-      font-family: 'DM Serif Display', serif;
-      font-size: 2.4rem;
-      line-height: 1;
-      color: var(--ink);
-    }
-
-    .frac-bar {
-      width: 100%;
-      min-width: 50px;
-      height: 2.5px;
-      background: var(--ink);
-      margin: 6px 0;
-    }
-
-    .arrow-icon {
-      font-size: 1.2rem;
-      color: var(--ink-soft);
-    }
-
-    .result-simplified .frac-num,
-    .result-simplified .frac-den {
-      color: var(--accent2);
-    }
-
-    .result-simplified .frac-bar {
-      background: var(--accent2);
-    }
-
-    .already-simple {
-      text-align: center;
-      font-family: 'DM Serif Display', serif;
-      font-style: italic;
-      color: var(--accent2);
-      font-size: 1.1rem;
-    }
-
-    .mcd-info {
-      text-align: center;
-      font-size: 0.82rem;
-      color: var(--ink-soft);
-      margin-top: 1.2rem;
-      font-family: 'DM Mono', monospace;
-    }
-
-    .mcd-info strong {
-      color: var(--accent);
-    }
-
-    /* Error */
-    .error-msg {
-      font-size: 0.85rem;
-      color: var(--accent);
-      text-align: center;
       margin-top: 1rem;
-      font-weight: 500;
-      min-height: 1.2em;
+      font-size: 0.95rem;
+      color: var(--muted);
+      font-weight: 400;
+      max-width: 360px;
+      margin-inline: auto;
+      line-height: 1.6;
+    }
+
+    /* Grid */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+      width: 100%;
+      max-width: 640px;
+    }
+
+    /* Tool card */
+    .tool-card {
+      background: var(--panel);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 2rem;
+      text-decoration: none;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.25s cubic-bezier(0.22,1,0.36,1),
+                  border-color 0.25s,
+                  box-shadow 0.25s;
+      animation: slideUp 0.65s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    .tool-card:nth-child(1) { animation-delay: 0.1s; }
+    .tool-card:nth-child(2) { animation-delay: 0.22s; }
+
+    .tool-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
       transition: opacity 0.3s;
+      pointer-events: none;
     }
 
-    /* Integer result */
-    .integer-result {
-      font-family: 'DM Serif Display', serif;
-      font-size: 3rem;
-      color: var(--accent2);
-      text-align: center;
+    .tool-card.card-pink { --accent: var(--pink); }
+    .tool-card.card-teal { --accent: var(--teal); }
+
+    .tool-card:hover {
+      transform: translateY(-6px);
+      border-color: var(--accent);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.4), 0 0 0 1px var(--accent);
     }
 
-    /* Steps */
-    .steps {
-      margin-top: 1.5rem;
+    /* Top accent line */
+    .tool-card .accent-line {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--accent);
+      border-radius: 10px 10px 0 0;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
+    }
+    .tool-card:hover .accent-line { transform: scaleX(1); }
+
+    /* Icon */
+    .tool-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
       background: var(--bg);
-      border: 1px solid var(--line);
-      border-radius: 3px;
-      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      transition: border-color 0.25s, background 0.25s;
+    }
+    .tool-card:hover .tool-icon {
+      border-color: var(--accent);
+      background: rgba(255,255,255,0.04);
     }
 
-    .steps-title {
-      font-size: 0.72rem;
+    /* Card content */
+    .tool-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--ink-soft);
-      font-weight: 500;
-      margin-bottom: 0.6rem;
-    }
-
-    .steps p {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.82rem;
-      color: var(--ink);
+      color: var(--accent);
       margin-bottom: 0.3rem;
-      line-height: 1.5;
     }
 
-    @keyframes fadeDown {
-      from { opacity: 0; transform: translateY(-18px); }
+    .tool-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    .tool-desc {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 400;
+      line-height: 1.6;
+    }
+
+    .tool-cta {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-top: auto;
+      opacity: 0;
+      transform: translateX(-6px);
+      transition: opacity 0.25s, transform 0.25s;
+    }
+    .tool-card:hover .tool-cta { opacity: 1; transform: translateX(0); }
+    .tool-cta::after { content: '→'; }
+
+    /* Fraction decoration inside card */
+    .frac-deco {
+      position: absolute;
+      bottom: 1rem;
+      right: 1.2rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--border);
+      text-align: center;
+      line-height: 1;
+      pointer-events: none;
+      transition: color 0.3s;
+    }
+    .tool-card:hover .frac-deco { color: var(--accent); opacity: 0.4; }
+    .frac-deco .fd-bar { width: 100%; height: 1px; background: currentColor; margin: 3px 0; }
+
+    /* Footer */
+    footer {
+      margin-top: 3.5rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--border);
+      text-align: center;
+      animation: fadeIn 1s ease 0.5s both;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-22px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(18px); }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(22px); }
       to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
     }
 
     @media (max-width: 480px) {
-      .card { padding: 2rem 1.5rem; }
-      .fraction-input input { width: 75px; font-size: 1.2rem; }
-      .fraction-line { width: 75px; }
+      .tools-grid { grid-template-columns: 1fr; }
+      h1 { font-size: 2rem; }
     }
   </style>
 </head>
 <body>
 
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
 <header>
-  <h1>Simplificador de <span>Fracciones</span></h1>
-  <p>Introduce una fracción y obtén su forma más simple</p>
+  <div class="eyebrow">Matemáticas</div>
+  <h1>
+    Herramientas de
+    <span class="line2">Fracciones</span>
+  </h1>
+  <p>Dos utilidades para trabajar con fracciones de forma rápida y visual</p>
 </header>
 
-<div class="card">
-  <div class="input-section">
-    <div class="fraction-input">
-      <input type="number" id="numerator" placeholder="3" aria-label="Numerador" />
-      <div class="fraction-line"></div>
-      <input type="number" id="denominator" placeholder="6" aria-label="Denominador" />
-      <label class="fraction-label">Fracción</label>
+<div class="tools-grid">
+
+  <!-- Simplificador -->
+  <a class="tool-card card-pink" href="simplificador-fracciones.html">
+    <div class="accent-line"></div>
+    <div class="tool-icon">➗</div>
+    <div>
+      <div class="tool-tag">Reducción</div>
+      <div class="tool-title">Simplificador<br>de Fracciones</div>
     </div>
-  </div>
+    <div class="tool-desc">
+      Introduce cualquier fracción y calcula automáticamente su forma más simple usando el Máximo Común Divisor.
+    </div>
+    <div class="tool-cta">Abrir herramienta</div>
+    <div class="frac-deco">
+      <div>6</div>
+      <div class="fd-bar"></div>
+      <div>9</div>
+    </div>
+  </a>
 
-  <div class="error-msg" id="error-msg" aria-live="polite"></div>
+  <!-- Equivalentes -->
+  <a class="tool-card card-teal" href="fracciones-equivalentes.html">
+    <div class="accent-line"></div>
+    <div class="tool-icon">⚖️</div>
+    <div>
+      <div class="tool-tag">Equivalencia</div>
+      <div class="tool-title">Fracciones<br>Equivalentes</div>
+    </div>
+    <div class="tool-desc">
+      Genera fracciones equivalentes multiplicando o dividiendo ambos términos por el factor que elijas.
+    </div>
+    <div class="tool-cta">Abrir herramienta</div>
+    <div class="frac-deco">
+      <div>2</div>
+      <div class="fd-bar"></div>
+      <div>3</div>
+    </div>
+  </a>
 
-  <div class="btn-group">
-    <button id="btn-simplify">Simplificar</button>
-    <button id="btn-reset">Limpiar</button>
-  </div>
-
-  <div class="result-area" id="result-area" aria-live="polite">
-    <div class="result-label">Resultado</div>
-    <div id="result-content"></div>
-    <div class="mcd-info" id="mcd-info"></div>
-    <div class="steps" id="steps-area" style="display:none"></div>
-  </div>
 </div>
 
-<script>
-  function gcd(a, b) {
-    a = Math.abs(a); b = Math.abs(b);
-    while (b) { [a, b] = [b, a % b]; }
-    return a;
-  }
+<footer>Math Tools &nbsp;·&nbsp; 2025</footer>
 
-  function getSteps(num, den, g) {
-    const lines = [];
-    lines.push(`MCD(${Math.abs(num)}, ${Math.abs(den)}) = ${g}`);
-    lines.push(`${num} ÷ ${g} = ${num / g}`);
-    lines.push(`${den} ÷ ${g} = ${den / g}`);
-    return lines;
-  }
-
-  function fractionHTML(num, den, simplified) {
-    const cls = simplified ? 'fraction-display result-simplified' : 'fraction-display';
-    return `
-      <div class="${cls}">
-        <span class="frac-num">${num}</span>
-        <div class="frac-bar"></div>
-        <span class="frac-den">${den}</span>
-      </div>`;
-  }
-
-  document.getElementById('btn-simplify').addEventListener('click', simplify);
-  document.getElementById('btn-reset').addEventListener('click', reset);
-
-  [document.getElementById('numerator'), document.getElementById('denominator')]
-    .forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') simplify(); }));
-
-  function simplify() {
-    const numVal = document.getElementById('numerator').value.trim();
-    const denVal = document.getElementById('denominator').value.trim();
-    const errEl  = document.getElementById('error-msg');
-    const resArea = document.getElementById('result-area');
-    const resContent = document.getElementById('result-content');
-    const mcdInfo = document.getElementById('mcd-info');
-    const stepsArea = document.getElementById('steps-area');
-
-    errEl.textContent = '';
-    resArea.classList.remove('visible');
-
-    if (numVal === '' || denVal === '') {
-      errEl.textContent = 'Por favor, introduce numerador y denominador.';
-      return;
-    }
-
-    const num = parseInt(numVal, 10);
-    const den = parseInt(denVal, 10);
-
-    if (isNaN(num) || isNaN(den)) {
-      errEl.textContent = 'Introduce números enteros válidos.';
-      return;
-    }
-    if (den === 0) {
-      errEl.textContent = 'El denominador no puede ser cero.';
-      return;
-    }
-
-    const sign = (num < 0) !== (den < 0) ? -1 : 1;
-    const absNum = Math.abs(num);
-    const absDen = Math.abs(den);
-    const g = gcd(absNum, absDen);
-
-    const sNum = sign * (absNum / g);
-    const sDen = absDen / g;
-    const alreadySimple = g === 1;
-
-    stepsArea.style.display = 'none';
-    stepsArea.innerHTML = '';
-
-    if (sDen === 1) {
-      // Result is an integer
-      resContent.innerHTML = `
-        <div class="result-main">
-          ${fractionHTML(num, den, false)}
-          <span class="arrow-icon">→</span>
-          <div class="integer-result">${sNum}</div>
-        </div>`;
-      mcdInfo.innerHTML = `MCD = <strong>${g}</strong> · La fracción equivale al entero <strong>${sNum}</strong>`;
-    } else if (alreadySimple) {
-      resContent.innerHTML = `
-        <div class="result-main">
-          ${fractionHTML(num, den, false)}
-        </div>
-        <div class="already-simple" style="margin-top:1rem">¡Ya está en su mínima expresión!</div>`;
-      mcdInfo.innerHTML = `MCD(${Math.abs(num)}, ${Math.abs(den)}) = <strong>1</strong> — no se puede simplificar`;
-    } else {
-      resContent.innerHTML = `
-        <div class="result-main">
-          ${fractionHTML(num, den, false)}
-          <span class="arrow-icon">→</span>
-          ${fractionHTML(sNum, sDen, true)}
-        </div>`;
-      mcdInfo.innerHTML = `MCD = <strong>${g}</strong> · Dividiendo ambos términos entre ${g}`;
-
-      const stepLines = getSteps(num, den, g);
-      stepsArea.innerHTML = `<div class="steps-title">Pasos</div>` +
-        stepLines.map(l => `<p>${l}</p>`).join('');
-      stepsArea.style.display = 'block';
-    }
-
-    // Trigger animation
-    void resArea.offsetWidth;
-    resArea.classList.add('visible');
-  }
-
-  function reset() {
-    document.getElementById('numerator').value = '';
-    document.getElementById('denominator').value = '';
-    document.getElementById('error-msg').textContent = '';
-    document.getElementById('result-area').classList.remove('visible');
-    document.getElementById('result-content').innerHTML = '';
-    document.getElementById('mcd-info').innerHTML = '';
-    document.getElementById('steps-area').style.display = 'none';
-    document.getElementById('numerator').focus();
-  }
-</script>
 </body>
 </html>

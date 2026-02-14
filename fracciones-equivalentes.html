@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fracciones Equivalentes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0e0e12;
+      --panel:   #16161e;
+      --border:  #2a2a38;
+      --text:    #e8e6f0;
+      --muted:   #6e6c82;
+      --yellow:  #f5d547;
+      --teal:    #3ef0c8;
+      --pink:    #f04e7a;
+      --blue:    #4e8ef0;
+    }
+
+    body {
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      color: var(--text);
+      padding: 2.5rem 1rem;
+      overflow-x: hidden;
+    }
+
+    .back-link {
+      position: fixed;
+      top: 1.2rem;
+      left: 1.5rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0.35rem 0.75rem;
+      transition: color 0.2s, border-color 0.2s;
+      z-index: 10;
+    }
+    .back-link:hover { color: var(--teal); border-color: var(--teal); }
+
+    /* Animated dot grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(circle, #ffffff08 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+
+    /* Glow blobs */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.12;
+      pointer-events: none;
+      animation: drift 12s ease-in-out infinite alternate;
+    }
+    .blob-1 { width: 400px; height: 400px; background: var(--teal); top: -100px; left: -100px; animation-delay: 0s; }
+    .blob-2 { width: 350px; height: 350px; background: var(--pink); bottom: -80px; right: -80px; animation-delay: -5s; }
+    .blob-3 { width: 280px; height: 280px; background: var(--yellow); top: 50%; left: 60%; animation-delay: -8s; }
+
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(30px, 20px) scale(1.08); }
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      animation: slideDown 0.6s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    .tag {
+      display: inline-block;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--teal);
+      border: 1px solid var(--teal);
+      padding: 0.25rem 0.75rem;
+      border-radius: 2px;
+      margin-bottom: 0.9rem;
+    }
+
+    h1 {
+      font-size: clamp(1.9rem, 5vw, 3rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+
+    h1 em {
+      font-style: normal;
+      color: var(--yellow);
+    }
+
+    header p {
+      margin-top: 0.6rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    /* Main card */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 580px;
+      animation: slideUp 0.6s cubic-bezier(0.22,1,0.36,1) 0.1s both;
+      position: relative;
+    }
+
+    .section-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.2rem;
+    }
+
+    /* Input fraction */
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .frac-input-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .frac-input-wrap input {
+      width: 88px;
+      height: 56px;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 5px;
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-align: center;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -moz-appearance: textfield;
+    }
+    .frac-input-wrap input::-webkit-inner-spin-button,
+    .frac-input-wrap input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    .frac-input-wrap input:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(62,240,200,0.12);
+    }
+
+    .frac-bar-input {
+      width: 88px;
+      height: 2.5px;
+      background: var(--text);
+      margin: 5px 0;
+    }
+
+    /* Multiplier control */
+    .multiplier-wrap {
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .multiplier-wrap label {
+      display: block;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
+    }
+
+    .mult-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .mult-btn {
+      width: 36px;
+      height: 36px;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 1.2rem;
+      font-family: 'Space Mono', monospace;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s, background 0.15s, transform 0.1s;
+      user-select: none;
+    }
+    .mult-btn:hover { border-color: var(--yellow); color: var(--yellow); }
+    .mult-btn:active { transform: scale(0.92); }
+
+    #mult-display {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--yellow);
+      min-width: 36px;
+      text-align: center;
+    }
+
+    .mult-type {
+      margin-left: 0.5rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    /* Operation row toggle */
+    .op-toggle {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      align-items: center;
+    }
+
+    .op-toggle span {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-right: 0.25rem;
+    }
+
+    .op-btn {
+      padding: 0.3rem 0.9rem;
+      border-radius: 3px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .op-btn.active-mult {
+      border-color: var(--yellow);
+      background: rgba(245,213,71,0.1);
+      color: var(--yellow);
+    }
+    .op-btn.active-div {
+      border-color: var(--teal);
+      background: rgba(62,240,200,0.1);
+      color: var(--teal);
+    }
+
+    /* Generate button */
+    #btn-generate {
+      margin-top: 1.8rem;
+      width: 100%;
+      padding: 0.85rem;
+      background: var(--yellow);
+      color: #0e0e12;
+      border: none;
+      border-radius: 5px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+      box-shadow: 0 0 0 0 rgba(245,213,71,0.4);
+    }
+    #btn-generate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(245,213,71,0.25);
+    }
+    #btn-generate:active { transform: translateY(0); box-shadow: none; }
+
+    .error-msg {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--pink);
+      margin-top: 0.8rem;
+      min-height: 1.2em;
+      text-align: center;
+    }
+
+    /* Results */
+    .result-section {
+      margin-top: 2rem;
+      padding-top: 1.8rem;
+      border-top: 1px solid var(--border);
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+    .result-section.visible { opacity: 1; transform: translateY(0); }
+
+    .equality-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.2rem;
+      flex-wrap: wrap;
+    }
+
+    .frac-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem 1.4rem;
+      min-width: 90px;
+      transition: border-color 0.3s;
+    }
+
+    .frac-card.original { border-color: var(--blue); }
+    .frac-card.equivalent { border-color: var(--teal); }
+
+    .frac-card .fc-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .frac-card.original .fc-label { color: var(--blue); }
+    .frac-card.equivalent .fc-label { color: var(--teal); }
+
+    .fc-num, .fc-den {
+      font-family: 'Space Mono', monospace;
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .frac-card.original .fc-num,
+    .frac-card.original .fc-den { color: var(--blue); }
+    .frac-card.equivalent .fc-num,
+    .frac-card.equivalent .fc-den { color: var(--teal); }
+
+    .fc-bar {
+      height: 2.5px;
+      width: 100%;
+      margin: 5px 0;
+      min-width: 40px;
+    }
+    .frac-card.original .fc-bar { background: var(--blue); }
+    .frac-card.equivalent .fc-bar { background: var(--teal); }
+
+    .eq-symbol {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.8rem;
+      color: var(--pink);
+      font-weight: 700;
+    }
+
+    /* Op badge */
+    .op-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+    }
+    .op-badge .op-line {
+      width: 2px;
+      height: 18px;
+      background: var(--border);
+    }
+    .op-badge .op-pill {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--yellow);
+      border: 1px solid var(--yellow);
+      border-radius: 20px;
+      padding: 0.15rem 0.5rem;
+      white-space: nowrap;
+      background: rgba(245,213,71,0.06);
+    }
+
+    /* Proof / verification */
+    .proof-box {
+      margin-top: 1.4rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 1rem 1.3rem;
+    }
+    .proof-box .proof-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
+    }
+    .proof-box p {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--text);
+      line-height: 1.7;
+    }
+    .proof-box .ok { color: var(--teal); }
+    .proof-box .val { color: var(--yellow); }
+
+    /* Batch row */
+    .batch-section {
+      margin-top: 1.6rem;
+    }
+    .batch-section .section-label { margin-bottom: 0.8rem; }
+
+    .batch-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .batch-chip {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.78rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.35rem 0.75rem;
+      color: var(--muted);
+      transition: border-color 0.2s, color 0.2s;
+      cursor: default;
+      animation: popIn 0.3s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    .batch-chip:hover { border-color: var(--teal); color: var(--teal); }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.8); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 1.8rem 1.3rem; }
+      .frac-input-wrap input { width: 72px; font-size: 1.2rem; height: 48px; }
+      .frac-bar-input { width: 72px; }
+      .input-row { gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<a class="back-link" href="index.html">← Inicio</a>
+
+<header>
+  <div class="tag">Herramienta matemática</div>
+  <h1>Fracciones <em>Equivalentes</em></h1>
+  <p>Introduce una fracción, elige el multiplicador y genera su equivalente</p>
+</header>
+
+<div class="card">
+
+  <div class="section-label">Fracción de entrada</div>
+
+  <div class="input-row">
+    <!-- Fracción -->
+    <div class="frac-input-wrap">
+      <input type="number" id="numerator" placeholder="2" aria-label="Numerador" />
+      <div class="frac-bar-input"></div>
+      <input type="number" id="denominator" placeholder="3" aria-label="Denominador" />
+    </div>
+
+    <!-- Multiplicador -->
+    <div class="multiplier-wrap">
+      <label>Multiplicar / Dividir por</label>
+      <div class="mult-controls">
+        <button class="mult-btn" id="btn-dec" title="Disminuir">−</button>
+        <span id="mult-display">2</span>
+        <button class="mult-btn" id="btn-inc" title="Aumentar">+</button>
+        <span class="mult-type" id="mult-type-label">×</span>
+      </div>
+
+      <div class="op-toggle">
+        <span>Operación:</span>
+        <button class="op-btn active-mult" id="op-mult" data-op="mult">× Mult.</button>
+        <button class="op-btn" id="op-div" data-op="div">÷ Div.</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-msg" id="error-msg" aria-live="polite"></div>
+
+  <button id="btn-generate">Generar fracción equivalente</button>
+
+  <!-- Results -->
+  <div class="result-section" id="result-section" aria-live="polite">
+
+    <div class="equality-row" id="equality-row"></div>
+
+    <div class="proof-box" id="proof-box"></div>
+
+    <div class="batch-section" id="batch-section">
+      <div class="section-label">Otras equivalentes con la misma fracción</div>
+      <div class="batch-grid" id="batch-grid"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let multiplier = 2;
+  let operation = 'mult'; // 'mult' | 'div'
+
+  const multDisplay = document.getElementById('mult-display');
+  const multTypeLabel = document.getElementById('mult-type-label');
+
+  function updateMultDisplay() {
+    multDisplay.textContent = multiplier;
+    multTypeLabel.textContent = operation === 'mult' ? '×' : '÷';
+  }
+
+  document.getElementById('btn-inc').addEventListener('click', () => {
+    multiplier = Math.min(multiplier + 1, 99);
+    updateMultDisplay();
+  });
+
+  document.getElementById('btn-dec').addEventListener('click', () => {
+    multiplier = Math.max(multiplier - 1, 2);
+    updateMultDisplay();
+  });
+
+  document.getElementById('op-mult').addEventListener('click', () => {
+    operation = 'mult';
+    document.getElementById('op-mult').className = 'op-btn active-mult';
+    document.getElementById('op-div').className = 'op-btn';
+    updateMultDisplay();
+  });
+
+  document.getElementById('op-div').addEventListener('click', () => {
+    operation = 'div';
+    document.getElementById('op-div').className = 'op-btn active-div';
+    document.getElementById('op-mult').className = 'op-btn';
+    updateMultDisplay();
+  });
+
+  document.getElementById('btn-generate').addEventListener('click', generate);
+
+  [document.getElementById('numerator'), document.getElementById('denominator')]
+    .forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') generate(); }));
+
+  function gcd(a, b) {
+    a = Math.abs(a); b = Math.abs(b);
+    while (b) { [a, b] = [b, a % b]; }
+    return a;
+  }
+
+  function generate() {
+    const numVal = document.getElementById('numerator').value.trim();
+    const denVal = document.getElementById('denominator').value.trim();
+    const errEl = document.getElementById('error-msg');
+    const resultSection = document.getElementById('result-section');
+
+    errEl.textContent = '';
+    resultSection.classList.remove('visible');
+
+    if (numVal === '' || denVal === '') {
+      errEl.textContent = 'Introduce el numerador y el denominador.';
+      return;
+    }
+
+    const num = parseInt(numVal, 10);
+    const den = parseInt(denVal, 10);
+
+    if (isNaN(num) || isNaN(den)) {
+      errEl.textContent = 'Introduce números enteros válidos.';
+      return;
+    }
+    if (den === 0) {
+      errEl.textContent = 'El denominador no puede ser cero.';
+      return;
+    }
+
+    // Division mode: check divisibility
+    if (operation === 'div') {
+      if (num % multiplier !== 0 || den % multiplier !== 0) {
+        const g = gcd(Math.abs(num), Math.abs(den));
+        const validDivisors = [];
+        for (let d = 2; d <= g; d++) {
+          if (g % d === 0 || (num % d === 0 && den % d === 0)) {
+            if (num % d === 0 && den % d === 0) validDivisors.push(d);
+          }
+        }
+        if (validDivisors.length) {
+          errEl.textContent = `÷${multiplier} no divide exactamente a ambos términos. Prueba con: ${validDivisors.join(', ')}`;
+        } else {
+          errEl.textContent = `÷${multiplier} no divide exactamente ambos términos. Usa multiplicación o simplifica primero.`;
+        }
+        return;
+      }
+    }
+
+    let eNum, eDen;
+    if (operation === 'mult') {
+      eNum = num * multiplier;
+      eDen = den * multiplier;
+    } else {
+      eNum = num / multiplier;
+      eDen = den / multiplier;
+    }
+
+    // Render equality row
+    const opSymbol = operation === 'mult' ? '×' : '÷';
+    const eqRow = document.getElementById('equality-row');
+    eqRow.innerHTML = `
+      <div class="frac-card original">
+        <span class="fc-label">Original</span>
+        <span class="fc-num">${num}</span>
+        <div class="fc-bar"></div>
+        <span class="fc-den">${den}</span>
+      </div>
+
+      <div class="op-badge">
+        <div class="op-line"></div>
+        <div class="op-pill">${opSymbol} ${multiplier}</div>
+        <div class="op-line"></div>
+      </div>
+
+      <span class="eq-symbol">=</span>
+
+      <div class="frac-card equivalent">
+        <span class="fc-label">Equivalente</span>
+        <span class="fc-num">${eNum}</span>
+        <div class="fc-bar"></div>
+        <span class="fc-den">${eDen}</span>
+      </div>
+    `;
+
+    // Proof
+    const proofBox = document.getElementById('proof-box');
+    const crossA = num * eDen;
+    const crossB = eNum * den;
+    const verified = crossA === crossB;
+
+    proofBox.innerHTML = `
+      <div class="proof-title">Verificación (productos cruzados)</div>
+      <p>
+        <span class="val">${num}</span> × <span class="val">${eDen}</span> = <span class="val">${crossA}</span>
+        &nbsp;|&nbsp;
+        <span class="val">${eNum}</span> × <span class="val">${den}</span> = <span class="val">${crossB}</span>
+      </p>
+      <p>
+        ${verified
+          ? `<span class="ok">✓ Son iguales → la fracción es equivalente</span>`
+          : `<span style="color:var(--pink)">✗ No son iguales (error interno)</span>`}
+      </p>
+    `;
+
+    // Batch: generate 8 more equivalents by multiplying 2–9
+    const batchGrid = document.getElementById('batch-grid');
+    batchGrid.innerHTML = '';
+    const used = new Set([multiplier.toString()]);
+
+    let count = 0;
+    for (let m = 2; m <= 20 && count < 8; m++) {
+      const tag = `${m}`;
+      if (used.has(tag)) continue;
+      const bn = num * m;
+      const bd = den * m;
+      const chip = document.createElement('div');
+      chip.className = 'batch-chip';
+      chip.textContent = `${bn}/${bd}`;
+      chip.style.animationDelay = `${count * 0.04}s`;
+      chip.title = `${num}/${den} × ${m}`;
+      batchGrid.appendChild(chip);
+      count++;
+      used.add(tag);
+    }
+
+    // Show section with animation
+    void resultSection.offsetWidth;
+    resultSection.classList.add('visible');
+  }
+
+  updateMultDisplay();
+</script>
+</body>
+</html>
