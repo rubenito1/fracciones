@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calcular X en Fracciones</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #0e0e12;
+      --panel:  #16161e;
+      --border: #2a2a38;
+      --text:   #e8e6f0;
+      --muted:  #6e6c82;
+      --yellow: #f5d547;
+      --teal:   #3ef0c8;
+      --pink:   #f04e7a;
+      --blue:   #4e8ef0;
+    }
+
+    body {
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      color: var(--text);
+      padding: 2.5rem 1rem;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(circle, #ffffff08 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(85px);
+      opacity: 0.11;
+      pointer-events: none;
+      animation: drift 13s ease-in-out infinite alternate;
+    }
+    .blob-1 { width: 420px; height: 420px; background: var(--blue);   top: -120px; left: -120px; animation-delay: 0s; }
+    .blob-2 { width: 360px; height: 360px; background: var(--yellow); bottom: -100px; right: -80px; animation-delay: -5s; }
+    .blob-3 { width: 260px; height: 260px; background: var(--teal);   top: 55%; left: 60%; animation-delay: -9s; }
+
+    @keyframes drift {
+      from { transform: translate(0,0) scale(1); }
+      to   { transform: translate(30px,20px) scale(1.09); }
+    }
+
+    .back-link {
+      position: fixed;
+      top: 1.2rem; left: 1.5rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0.35rem 0.75rem;
+      transition: color 0.2s, border-color 0.2s;
+      z-index: 10;
+    }
+    .back-link:hover { color: var(--blue); border-color: var(--blue); }
+
+    /* ── HEADER ── */
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      animation: slideDown 0.6s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    .tag {
+      display: inline-block;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--blue);
+      border: 1px solid var(--blue);
+      padding: 0.25rem 0.75rem;
+      border-radius: 2px;
+      margin-bottom: 0.9rem;
+    }
+
+    h1 {
+      font-size: clamp(1.9rem, 5vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+    }
+    h1 em { font-style: normal; color: var(--blue); }
+
+    header p {
+      margin-top: 0.6rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 560px;
+      animation: slideUp 0.6s cubic-bezier(0.22,1,0.36,1) 0.1s both;
+    }
+
+    .section-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.4rem;
+    }
+
+    /* ── PROPORTION INPUT ── */
+    .proportion-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    /* Each fraction column */
+    .frac-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .frac-slot {
+      width: 84px;
+      height: 54px;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s;
+    }
+
+    /* X slot — highlight */
+    .frac-slot.x-slot {
+      border-color: var(--blue);
+      background: rgba(78,142,240,0.07);
+      position: relative;
+    }
+    .frac-slot.x-slot::after {
+      content: 'X';
+      font-family: 'Space Mono', monospace;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--blue);
+    }
+
+    /* Number input inside slot */
+    .frac-slot input {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: 'Space Mono', monospace;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text);
+      text-align: center;
+      -moz-appearance: textfield;
+    }
+    .frac-slot input::-webkit-inner-spin-button,
+    .frac-slot input::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .frac-slot:has(input:focus) { border-color: var(--yellow); box-shadow: 0 0 0 3px rgba(245,213,71,0.1); }
+
+    .frac-bar {
+      width: 84px;
+      height: 2.5px;
+      background: var(--text);
+      margin: 5px 0;
+    }
+
+    /* X position selector */
+    .x-position-wrap {
+      margin-bottom: 1.4rem;
+    }
+    .x-position-wrap .section-label { margin-bottom: 0.8rem; }
+
+    .pos-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+    }
+
+    .pos-btn {
+      padding: 0.45rem 0.3rem;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      text-align: center;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+      line-height: 1.4;
+    }
+    .pos-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .pos-btn.active {
+      border-color: var(--blue);
+      background: rgba(78,142,240,0.12);
+      color: var(--blue);
+    }
+    .pos-btn .pb-frac {
+      font-size: 0.78rem;
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* equals sign */
+    .eq-sign {
+      font-family: 'Space Mono', monospace;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--muted);
+      user-select: none;
+      margin-bottom: 2px;
+    }
+
+    /* ── BUTTON ── */
+    #btn-calc {
+      margin-top: 1.8rem;
+      width: 100%;
+      padding: 0.85rem;
+      background: var(--blue);
+      color: #0e0e12;
+      border: none;
+      border-radius: 5px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    #btn-calc:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(78,142,240,0.3); }
+    #btn-calc:active { transform: translateY(0); box-shadow: none; }
+
+    #btn-reset {
+      margin-top: 0.7rem;
+      width: 100%;
+      padding: 0.6rem;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    #btn-reset:hover { color: var(--text); border-color: var(--muted); }
+
+    .error-msg {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--pink);
+      margin-top: 0.8rem;
+      min-height: 1.2em;
+      text-align: center;
+    }
+
+    /* ── RESULT ── */
+    .result-section {
+      margin-top: 2rem;
+      padding-top: 1.8rem;
+      border-top: 1px solid var(--border);
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+    .result-section.visible { opacity: 1; transform: translateY(0); }
+
+    .result-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 1.2rem;
+    }
+
+    /* Big X answer */
+    .x-answer-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 1.6rem;
+    }
+
+    .x-label-big {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--blue);
+    }
+
+    .x-value {
+      font-family: 'Space Mono', monospace;
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: var(--blue);
+      line-height: 1;
+      animation: popIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    .x-fraction {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    /* Verification row */
+    .verify-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.4rem;
+    }
+
+    .vfrac {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      padding: 0.7rem 1rem;
+      min-width: 72px;
+    }
+    .vfrac.v-left  { border-color: var(--blue); }
+    .vfrac.v-right { border-color: var(--yellow); }
+
+    .vfrac .vf-num,
+    .vfrac .vf-den {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.3rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .vfrac.v-left  .vf-num,
+    .vfrac.v-left  .vf-den { color: var(--blue); }
+    .vfrac.v-right .vf-num,
+    .vfrac.v-right .vf-den { color: var(--yellow); }
+
+    .vfrac .vf-bar {
+      height: 2px;
+      width: 100%;
+      margin: 4px 0;
+    }
+    .vfrac.v-left  .vf-bar { background: var(--blue); }
+    .vfrac.v-right .vf-bar { background: var(--yellow); }
+
+    .v-eq { font-family: 'Space Mono', monospace; font-size: 1.5rem; color: var(--pink); font-weight: 700; }
+
+    /* Proof */
+    .proof-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 1rem 1.3rem;
+    }
+    .proof-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.7rem;
+    }
+    .proof-box p {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text);
+      line-height: 1.9;
+    }
+    .proof-box .ok  { color: var(--teal); }
+    .proof-box .val { color: var(--yellow); }
+    .proof-box .hl  { color: var(--blue); }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.7); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 1.8rem 1.2rem; }
+      .pos-grid { grid-template-columns: repeat(2,1fr); }
+      .frac-slot { width: 70px; }
+      .frac-bar  { width: 70px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<a class="back-link" href="index.html">← Inicio</a>
+
+<header>
+  <div class="tag">Herramienta matemática</div>
+  <h1>Calcular <em>X</em> en Fracciones</h1>
+  <p>Resuelve proporciones del tipo X/16 = 3/2 usando productos cruzados</p>
+</header>
+
+<div class="card">
+
+  <!-- Position selector -->
+  <div class="x-position-wrap">
+    <div class="section-label">¿Dónde está la X?</div>
+    <div class="pos-grid">
+      <button class="pos-btn active" data-pos="0" title="X/a = b/c">
+        Numerador izq.
+        <span class="pb-frac">X/a = b/c</span>
+      </button>
+      <button class="pos-btn" data-pos="1" title="a/X = b/c">
+        Denominador izq.
+        <span class="pb-frac">a/X = b/c</span>
+      </button>
+      <button class="pos-btn" data-pos="2" title="a/b = X/c">
+        Numerador der.
+        <span class="pb-frac">a/b = X/c</span>
+      </button>
+      <button class="pos-btn" data-pos="3" title="a/b = c/X">
+        Denominador der.
+        <span class="pb-frac">a/b = c/X</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Proportion inputs -->
+  <div class="section-label">Introduce los valores conocidos</div>
+  <div class="proportion-row" id="proportion-row">
+    <!-- rendered by JS -->
+  </div>
+
+  <div class="error-msg" id="error-msg" aria-live="polite"></div>
+
+  <button id="btn-calc">Calcular X</button>
+  <button id="btn-reset">Limpiar</button>
+
+  <!-- Result -->
+  <div class="result-section" id="result-section" aria-live="polite">
+    <div class="result-label">Resultado</div>
+    <div class="x-answer-block" id="x-answer-block"></div>
+    <div class="verify-row" id="verify-row"></div>
+    <div class="proof-box" id="proof-box"></div>
+  </div>
+</div>
+
+<script>
+  // xPos: 0=num-left, 1=den-left, 2=num-right, 3=den-right
+  let xPos = 0;
+
+  // Labels for each slot based on xPos
+  // slots: [num-left, den-left, num-right, den-right]
+  function getSlots(pos) {
+    // returns array of 4: true = X slot, false = input slot
+    return [pos===0, pos===1, pos===2, pos===3];
+  }
+
+  function buildRow() {
+    const row = document.getElementById('proportion-row');
+    const slots = getSlots(xPos);
+    // slots[0]=numL, slots[1]=denL, slots[2]=numR, slots[3]=denR
+
+    row.innerHTML = `
+      <!-- Left fraction -->
+      <div class="frac-col">
+        ${slots[0]
+          ? `<div class="frac-slot x-slot"></div>`
+          : `<div class="frac-slot"><input type="number" id="s0" placeholder="?" aria-label="Numerador izquierdo"/></div>`}
+        <div class="frac-bar"></div>
+        ${slots[1]
+          ? `<div class="frac-slot x-slot"></div>`
+          : `<div class="frac-slot"><input type="number" id="s1" placeholder="?" aria-label="Denominador izquierdo"/></div>`}
+      </div>
+
+      <span class="eq-sign">=</span>
+
+      <!-- Right fraction -->
+      <div class="frac-col">
+        ${slots[2]
+          ? `<div class="frac-slot x-slot"></div>`
+          : `<div class="frac-slot"><input type="number" id="s2" placeholder="?" aria-label="Numerador derecho"/></div>`}
+        <div class="frac-bar"></div>
+        ${slots[3]
+          ? `<div class="frac-slot x-slot"></div>`
+          : `<div class="frac-slot"><input type="number" id="s3" placeholder="?" aria-label="Denominador derecho"/></div>`}
+      </div>
+    `;
+
+    // Bind Enter key on inputs
+    row.querySelectorAll('input').forEach(el =>
+      el.addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); })
+    );
+  }
+
+  // Position buttons
+  document.querySelectorAll('.pos-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      xPos = parseInt(btn.dataset.pos);
+      document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      buildRow();
+      clearResult();
+    });
+  });
+
+  document.getElementById('btn-calc').addEventListener('click', calculate);
+  document.getElementById('btn-reset').addEventListener('click', () => { buildRow(); clearResult(); });
+
+  function clearResult() {
+    document.getElementById('error-msg').textContent = '';
+    document.getElementById('result-section').classList.remove('visible');
+    document.getElementById('x-answer-block').innerHTML = '';
+    document.getElementById('verify-row').innerHTML = '';
+    document.getElementById('proof-box').innerHTML = '';
+  }
+
+  function getVal(id) {
+    const el = document.getElementById(id);
+    if (!el) return null; // it's the X slot
+    const v = el.value.trim();
+    if (v === '') return undefined; // missing
+    return parseFloat(v);
+  }
+
+  function gcd(a, b) {
+    a = Math.abs(Math.round(a)); b = Math.abs(Math.round(b));
+    while (b) { [a, b] = [b, a % b]; }
+    return a;
+  }
+
+  function toFrac(val) {
+    // Convert decimal to a simple fraction string if possible
+    if (Number.isInteger(val)) return `${val}`;
+    // Try with denominator up to 1000
+    for (let d = 2; d <= 1000; d++) {
+      const n = val * d;
+      if (Math.abs(Math.round(n) - n) < 1e-9) {
+        const ni = Math.round(n);
+        const g = gcd(Math.abs(ni), d);
+        return `${ni/g}/${d/g}`;
+      }
+    }
+    return val.toFixed(4);
+  }
+
+  function calculate() {
+    clearResult();
+    const errEl = document.getElementById('error-msg');
+
+    // Read the 3 known values (X slot returns null)
+    const vals = [0,1,2,3].map(i => getVal(`s${i}`));
+
+    // Check missing inputs (undefined = empty field that is NOT the X slot)
+    const missing = [0,1,2,3].filter(i => vals[i] === undefined);
+    if (missing.length > 0) {
+      errEl.textContent = 'Rellena todos los campos conocidos.';
+      return;
+    }
+
+    // Extract the 3 known numbers
+    // Positions: 0=numL(a), 1=denL(b), 2=numR(c), 3=denR(d)
+    // Proportion: a/b = c/d  → cross multiply: a*d = b*c
+    // xPos=0: X/b = c/d  → X = b*c/d
+    // xPos=1: a/X = c/d  → X = a*d/c
+    // xPos=2: a/b = X/d  → X = a*d/b
+    // xPos=3: a/b = c/X  → X = b*c/a
+
+    const a = vals[0], b = vals[1], c = vals[2], d = vals[3];
+
+    // Validate no zero denominators in input
+    if (xPos !== 1 && b === 0) { errEl.textContent = 'El denominador izquierdo no puede ser 0.'; return; }
+    if (xPos !== 3 && d === 0) { errEl.textContent = 'El denominador derecho no puede ser 0.'; return; }
+    if (xPos === 1 && c === 0) { errEl.textContent = 'El numerador derecho no puede ser 0 (divisor).'; return; }
+    if (xPos === 3 && a === 0) { errEl.textContent = 'El numerador izquierdo no puede ser 0 (divisor).'; return; }
+
+    let X, formula, step1, step2;
+
+    switch(xPos) {
+      case 0: // X/b = c/d → X = (b*c)/d
+        if (d === 0) { errEl.textContent = 'El denominador derecho no puede ser 0.'; return; }
+        X = (b * c) / d;
+        formula = `X × ${d} = ${b} × ${c}`;
+        step1   = `X × ${d} = ${b * c}`;
+        step2   = `X = ${b * c} ÷ ${d}`;
+        break;
+      case 1: // a/X = c/d → X = (a*d)/c
+        if (c === 0) { errEl.textContent = 'El numerador derecho no puede ser 0.'; return; }
+        X = (a * d) / c;
+        formula = `${a} × ${d} = X × ${c}`;
+        step1   = `${a * d} = X × ${c}`;
+        step2   = `X = ${a * d} ÷ ${c}`;
+        break;
+      case 2: // a/b = X/d → X = (a*d)/b
+        if (b === 0) { errEl.textContent = 'El denominador izquierdo no puede ser 0.'; return; }
+        X = (a * d) / b;
+        formula = `${a} × ${d} = ${b} × X`;
+        step1   = `${a * d} = ${b} × X`;
+        step2   = `X = ${a * d} ÷ ${b}`;
+        break;
+      case 3: // a/b = c/X → X = (b*c)/a
+        if (a === 0) { errEl.textContent = 'El numerador izquierdo no puede ser 0.'; return; }
+        X = (b * c) / a;
+        formula = `${a} × X = ${b} × ${c}`;
+        step1   = `${a} × X = ${b * c}`;
+        step2   = `X = ${b * c} ÷ ${a}`;
+        break;
+    }
+
+    if (!isFinite(X)) { errEl.textContent = 'La operación genera una indeterminación.'; return; }
+
+    const xDisplay = Number.isInteger(X) ? X : X.toFixed(4).replace(/\.?0+$/, '');
+    const fracStr  = toFrac(X);
+    const isFrac   = fracStr.includes('/');
+
+    // Build left and right fractions for verification display
+    let leftNum, leftDen, rightNum, rightDen;
+    switch(xPos) {
+      case 0: leftNum=X;   leftDen=b;  rightNum=c;  rightDen=d; break;
+      case 1: leftNum=a;   leftDen=X;  rightNum=c;  rightDen=d; break;
+      case 2: leftNum=a;   leftDen=b;  rightNum=X;  rightDen=d; break;
+      case 3: leftNum=a;   leftDen=b;  rightNum=c;  rightDen=X; break;
+    }
+
+    const fmt = v => Number.isInteger(v) ? v : parseFloat(v.toFixed(4));
+
+    // X answer
+    document.getElementById('x-answer-block').innerHTML = `
+      <span class="x-label-big">X =</span>
+      <span class="x-value">${xDisplay}</span>
+      ${isFrac ? `<span class="x-fraction">(fracción: ${fracStr})</span>` : ''}
+    `;
+
+    // Verification fractions
+    document.getElementById('verify-row').innerHTML = `
+      <div class="vfrac v-left">
+        <span class="vf-num">${fmt(leftNum)}</span>
+        <div class="vf-bar"></div>
+        <span class="vf-den">${fmt(leftDen)}</span>
+      </div>
+      <span class="v-eq">=</span>
+      <div class="vfrac v-right">
+        <span class="vf-num">${fmt(rightNum)}</span>
+        <div class="vf-bar"></div>
+        <span class="vf-den">${fmt(rightDen)}</span>
+      </div>
+    `;
+
+    // Decimal check
+    const leftDec  = leftNum / leftDen;
+    const rightDec = rightNum / rightDen;
+    const verified = Math.abs(leftDec - rightDec) < 1e-9;
+
+    // Proof steps
+    document.getElementById('proof-box').innerHTML = `
+      <div class="proof-title">Resolución paso a paso</div>
+      <p>Productos cruzados: &nbsp;<span class="val">${formula}</span></p>
+      <p><span class="val">${step1}</span></p>
+      <p><span class="hl">${step2}</span></p>
+      <p><span class="hl">X = ${xDisplay}</span></p>
+      <p>${verified
+        ? `<span class="ok">✓ Verificado: ${fmt(leftDec.toFixed(6))} = ${fmt(rightDec.toFixed(6))}</span>`
+        : `<span style="color:var(--pink)">✗ Verificación fallida</span>`}
+      </p>
+    `;
+
+    const rs = document.getElementById('result-section');
+    void rs.offsetWidth;
+    rs.classList.add('visible');
+  }
+
+  // Init
+  buildRow();
+</script>
+</body>
+</html>
